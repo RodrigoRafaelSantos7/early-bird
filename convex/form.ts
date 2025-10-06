@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation } from "./_generated/server";
 
 export const insert = mutation({
   args: {
@@ -34,7 +34,7 @@ export const insert = mutation({
   },
 });
 
-export const get = query({
+export const get = internalQuery({
   args: {
     email: v.string(),
   },
