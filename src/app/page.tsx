@@ -1,103 +1,115 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useForm } from "@tanstack/react-form";
+import { useMutation } from "convex/react";
+import { ArrowRightIcon } from "lucide-react";
+import { toast } from "sonner";
+import z from "zod";
+import { Logo } from "@/components/logo";
+import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { api } from "../../convex/_generated/api";
+
+const schema = z.object({
+  email: z.email(),
+});
+
+const IndexPage = () => {
+  const insertFormSubmission = useMutation(api.form.insert);
+
+  const form = useForm({
+    defaultValues: {
+      email: "",
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        await insertFormSubmission({ email: value.email });
+        toast.success("Email enviado com sucesso");
+      } catch {
+        toast.error("Email já foi enviado para este endereço");
+      }
+    },
+    validators: {
+      onMount: schema,
+      onChange: schema,
+      onSubmit: schema,
+    },
+  });
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="relative flex flex-1">
+      <div className="relative z-1 flex flex-1 overflow-auto">
+        <div className="h-screen w-full p-4">
+          <form
+            className="relative flex h-full w-full flex-1 items-center justify-center p-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit();
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <div className="col-span-1 row-span-3 flex max-w-md flex-col items-center justify-center gap-6 rounded-2x">
+              <div className="flex min-w-[280px] flex-col items-center gap-2 md:min-w-[350px]">
+                <Logo />
+                <span className="font-semibold text-foreground text-xl">
+                  Ganha acesso antecipado à parte 2
+                </span>
+                <span className="text-muted-foreground text-sm">
+                  Introduz o teu email para garantir o teu acesso
+                </span>
+              </div>
+              <div className="w-full">
+                <form.Field name="email">
+                  {(field) => (
+                    <FieldSet>
+                      <FieldGroup>
+                        <Field>
+                          <FieldLabel htmlFor="email">Email</FieldLabel>
+                          <Input
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="m@exemplo.com"
+                            value={field.state.value}
+                          />
+                        </Field>
+                      </FieldGroup>
+                    </FieldSet>
+                  )}
+                </form.Field>
+              </div>
+              <div className="w-full">
+                <form.Subscribe
+                  selector={(state) => ({
+                    isSubmitting: state.isSubmitting,
+                    canSubmit: state.canSubmit,
+                  })}
+                >
+                  {({ isSubmitting, canSubmit }) => (
+                    <Button
+                      className="w-full"
+                      disabled={!canSubmit || isSubmitting}
+                      type="submit"
+                      variant="secondary"
+                    >
+                      <span className="text-primary-foreground">Continuar</span>
+                      {isSubmitting ? (
+                        <Spinner />
+                      ) : (
+                        <ArrowRightIcon
+                          className="text-primary-foreground"
+                          size={10}
+                        />
+                      )}
+                    </Button>
+                  )}
+                </form.Subscribe>
+              </div>
+            </div>
+          </form>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
-}
+};
+
+export default IndexPage;
